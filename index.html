@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+</head>
+
+<body>
+
+
+  
+  <script>
+    let h=window.innerHeight;
+    let w=window.innerWidth;
+
+    let cornerX=50;
+    let cornerY=h-50;
+
+    let mouseX=-1;
+    let mouseY=-1; 
+
+    var canvas = document.createElement("canvas");
+    canvas.setAttribute("width", w);
+    canvas.setAttribute("height", window.innerHeight);
+    canvas.setAttribute("style", "position: absolute; x:0; y:0;");
+    document.body.appendChild(canvas);
+    document.body.style.overflow = 'hidden'; 
+    var ctx = canvas.getContext("2d");
+
+    
+    ctx.fillRect(0, cornerY,w,3)
+    ctx.fillRect(cornerX,0,3,h)
+    
+    let h0=0;
+    document.onmousemove = function(e)
+    {
+      mouseX=e.x;
+      mouseY=e.y;
+      let theta=Math.atan((cornerY-mouseY)/(mouseX-cornerX));
+      let v0=0;
+      console.log(theta)
+    }
+    
+  </script>
+</body>
+
+</html>
