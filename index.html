@@ -3,13 +3,29 @@
 
 
 <head>
+  <style>
+    .content {
+    margin-left: auto;
+    margin-right: auto;
+    table-layout: fixed;
+    border-collapse: collapse;
+    z-index: -1;
+    position:relative;
+    text-align: right;
+}
+  </style>
 </head>
 
 <body>
+  <canvas id="canvas"></canvas>
+  <!-- <label id = "info" class="content"></label> -->
 
 
   
   <script>
+    function todec(c){
+      return Math.round(c*100)/100
+    }
     let h=window.innerHeight;
     let w=window.innerWidth;
 
@@ -19,13 +35,21 @@
     let mouseX=-1;
     let mouseY=-1; 
 
-    var canvas = document.createElement("canvas");
+    let flag = true;
+
+    var canvas = document.getElementById("canvas");
+    var label = document.getElementById("info");
+
+
     canvas.setAttribute("width", w);
-    canvas.setAttribute("height", window.innerHeight);
+    canvas.setAttribute("height", h);
     canvas.setAttribute("style", "position: absolute; x:0; y:0;");
     document.body.appendChild(canvas);
     document.body.style.overflow = 'hidden'; 
     var ctx = canvas.getContext("2d");
+    ctx.font = "32px serif";
+    // ctx.fillStyle = "green";
+    // label.style.marginRight="100px"
 
     
     ctx.fillRect(0, cornerY,w,3)
@@ -34,11 +58,33 @@
     let h0=0;
     document.onmousemove = function(e)
     {
+      if (e.y>cornerY||e.x<cornerX){return;}
       mouseX=e.x;
       mouseY=e.y;
       let theta=Math.atan((cornerY-mouseY)/(mouseX-cornerX));
-      let v0=0;
-      console.log(theta)
+      let v0=Math.sqrt((cornerX-mouseX)**2+(cornerY-mouseY));
+      
+      if(flag){
+        ctx.clearRect(cornerX+3,0,w,h-50);
+        ctx.fillText(`range:${todec((v0*v0*Math.sin(2*theta))/480.69)}, theta:${todec(theta*57.295)}deg, v0:${todec(v0/7)}`,1200,50)
+        let aaa=getPoints(v0/7,h0,theta);
+        for(let i = 0; i<99;i++){
+          console.log(aaa[i][0],aaa[i][1])
+          ctx.fillRect(cornerX+aaa[i][0]+10,cornerY-aaa[i][1]-10,5,5)
+        }
+      }
+    }
+    document.onmousedown = function(e){}
+
+    function getPoints(v0, h0, theta){
+      let time = (2*v0*Math.sin(theta))/9.81
+      let range = (v0*v0*Math.sin(2*theta))/9.81
+      let temp=[];
+      for(let i = 1;i<99;i++){
+        let temp2=(range/100)*i
+        temp.push([temp2,temp2*Math.tan(theta)-(9.81*temp2*temp2/(2*v0*v0*Math.cos(theta)*Math.cos(theta)))])
+      }
+      return temp;
     }
     
   </script>
