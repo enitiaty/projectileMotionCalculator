@@ -17,7 +17,8 @@
 </head>
 
 <body>
-  <canvas id="canvas"></canvas>
+  <canvas id="canvas" style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
+  <canvas id="background" style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
   <!-- <label id = "info" class="content"></label> -->
 
 
@@ -38,51 +39,87 @@
     let flag = true;
 
     var canvas = document.getElementById("canvas");
+    var bg=document.getElementById("background")
     var label = document.getElementById("info");
 
 
     canvas.setAttribute("width", w);
     canvas.setAttribute("height", h);
-    canvas.setAttribute("style", "position: absolute; x:0; y:0;");
+    // canvas.setAttribute("style", "position: absolute; x:0; y:0;");
     document.body.appendChild(canvas);
     document.body.style.overflow = 'hidden'; 
     var ctx = canvas.getContext("2d");
     ctx.font = "32px serif";
+    
+    bg.setAttribute("width", w);
+    bg.setAttribute("height", h);
+    // bg.setAttribute("style", "position: absolute; x:0; y:0;");
+    document.body.appendChild(bg);
+    var ctx1 = bg.getContext("2d");
+    ctx.globalCompositeOperation = 'destination-over'
+    
+    ctx1.fillStyle = "rgb(135, 206, 235)";
+    ctx1.fillRect(0, 0, w, h);
+    ctx1.fillStyle = "rgb(121,189,18)";
+    ctx1.fillRect(0, cornerY, w, h);
+
     // ctx.fillStyle = "green";
     // label.style.marginRight="100px"
 
     
-    ctx.fillRect(0, cornerY,w,3)
-    ctx.fillRect(cornerX,0,3,h)
-    
+    // ctx.fillRect(0, cornerY,w,3)
+    // ctx.fillRect(cornerX,0,3,h)
+    ctx.fillText(`theta: -1deg, v0: -1m/s`,800,50)
+
     let h0=0;
+    const MODIFIER = 7;
+    let theta = 0;
+    let v0 = -1;
+    const G = 9.81;
     document.onmousemove = function(e)
     {
       if (e.y>cornerY||e.x<cornerX){return;}
       mouseX=e.x;
       mouseY=e.y;
-      let theta=Math.atan((cornerY-mouseY)/(mouseX-cornerX));
-      let v0=Math.sqrt((cornerX-mouseX)**2+(cornerY-mouseY));
+      theta=Math.atan((cornerY-mouseY)/(mouseX-cornerX));
+      v0=Math.sqrt((cornerX-mouseX)**2+(cornerY-mouseY))/MODIFIER;
       
       if(flag){
         ctx.clearRect(cornerX+3,0,w,h-50);
-        ctx.fillText(`range:${todec((v0*v0*Math.sin(2*theta))/480.69)}, theta:${todec(theta*57.295)}deg, v0:${todec(v0/7)}`,1200,50)
-        let aaa=getPoints(v0/7,h0,theta);
-        for(let i = 0; i<99;i++){
-          console.log(aaa[i][0],aaa[i][1])
-          ctx.fillRect(cornerX+aaa[i][0]+10,cornerY-aaa[i][1]-10,5,5)
-        }
+        drawCurve(v0,0,theta);
+        ctx.fillText(`Theta:${todec(theta*57.295)}deg, v0:${todec(v0)}m/s`,800,50)
       }
     }
-    document.onmousedown = function(e){}
-
+    document.onmousedown = function(e){
+      if (flag){
+        console.log(theta)
+        flag=false;
+        let range = todec((v0*v0*Math.sin(2*theta))/G);
+        let time = todec((2*v0*Math.sin(theta))/G);
+        let h_m= todec((v0*v0*Math.sin(theta)*Math.sin(theta))/(2*G))
+        // ctx.clearRect(cornerX+3,0,w,h-50);
+        drawCurve(v0,0,theta);
+        ctx.fillText(`Range: ${range}m, Flight time: ${time}s, Max height: ${h_m}m`,800,100)
+      } else {
+        ctx.clearRect(cornerX+3,0,w,h-50);
+        flag=true;
+        ctx.fillText(`theta: -1deg, v0: -1m/s`,800,50)
+      }
+    }
+    function drawCurve(v1,h1,theta1){
+      let aaa=getPoints(v1,h1,theta1);
+      for(let i = 0; i<99;i++){
+        ctx.fillRect(cornerX+aaa[i][0]+10,cornerY-aaa[i][1]-10,5,5)
+      }
+      
+    }
     function getPoints(v0, h0, theta){
-      let time = (2*v0*Math.sin(theta))/9.81
-      let range = (v0*v0*Math.sin(2*theta))/9.81
+      let time = (2*v0*Math.sin(theta))/G
+      let range = (v0*v0*Math.sin(2*theta))/G
       let temp=[];
-      for(let i = 1;i<99;i++){
+      for(let i = 1;i<100;i++){
         let temp2=(range/100)*i
-        temp.push([temp2,temp2*Math.tan(theta)-(9.81*temp2*temp2/(2*v0*v0*Math.cos(theta)*Math.cos(theta)))])
+        temp.push([temp2,temp2*Math.tan(theta)-(G*temp2*temp2/(2*v0*v0*Math.cos(theta)*Math.cos(theta)))])
       }
       return temp;
     }
